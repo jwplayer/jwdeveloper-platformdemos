@@ -1,0 +1,26 @@
+<rss version="2.0"
+     xmlns:media="http://search.yahoo.com/mrss/"
+
+
+<channel>
+<title>Feed Title</title>
+<description>Feed Description</description>
+<language>en-us</language>
+
+{% for item in items %}
+<item>
+  <media:keywords>{{ item.tags }}</media:keywords>
+  <media:category>{{ item.custom.category }}</media:category>
+  <media:title>{{ item.title }}</media:title>
+  <description>{{ item.description }}</description> 
+  <guid>{{ item.key }}</guid>
+  <PubDate>{{ item.date_rss }}</PubDate>
+			
+  <media:content content_id="{{ item.key }}" url="{{ item.mediaurl }}" width="1920" height="1080" bitrate="24583" fileSize="231780091" duration="{{ item.duration }}" type="video" container="NA" codec="h264"></media:content>
+			           
+  <media:thumbnail url="{{ item.image }}" width="1"></media:thumbnail>
+</item>
+{% endfor %}
+
+</channel>       
+</rss>

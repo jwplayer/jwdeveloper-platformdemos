@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss xmlns:gazeebo="http://www.vimond.com/vimondFeedExtension/1.0" version="2.0"
+  <channel>
+    <title>Sample MRSS Feed</title>
+    <link>http://www.exampledomain.com</link>
+    <pubDate>Mon, 16 May 2016 19:32:13 UTC</pubDate>
+    {% for item in items %}
+    <item>
+      <title>{{ item.title }}</title>
+      <description><![CDATA[{{ item.description }}]]></description>
+      <guid isPermaLink="false">{{ item.key }}</guid>
+      <pubDate>{{ item.date_tc }}</pubDate>
+      <enclosure url="{{ item.image }}" type="image/jpeg"></enclosure>
+      <enclosure url="{{ item.mediaurl }}" type="video/mp4" ></enclosure>
+      <gazeebo:metadata name="asset-length">{{ item.duration }}</gazeebo:metadata>
+      <gazeebo:metadata name="tags"><![CDATA[{{ item.tags }}]]></gazeebo:metadata>
+      <gazeebo:metadata name="episode">{{ item.custom.episode or '1' }}</gazeebo:metadata>
+      <gazeebo:metadata name="hd">{{ item.custom.hd or 'sd' }}</gazeebo:metadata>            
+   </item>
+   {% endfor %}    
+  </channel>
+</rss>
