@@ -15,5 +15,5 @@ This directory demonstrates how you can deploy a simple feed formatter service t
 5. Visit the app in your browser
   * <http://localhost:5000/JW_MEDIA_KEY/TEMPLATE_NAME>
   * <http://localhost:5000/Hilgq9Ju/custom1>
-6. OR run in the background using `screen` (optional) ---
-   `$ screen -d -m python app.py`
+6. OR use an application server 
+   `http://flask.pocoo.org/docs/0.11/deploying/uwsgi/`
