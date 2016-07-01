@@ -9,10 +9,10 @@
   {% else -%}
   <item>
     <title>{{ item.title }}</title>
-    <link>{{ item.link }}</link>
+    <link>https:{{ item.link }}</link>
     <description>{{ item.description }}</description>
     <pubDate>{{ item.date_rss }}</pubDate>
-    <guid>{{ item.key }}</guid>
+    <guid isPermaLink="false">{{ item.key }}</guid>
     <media:content url="https://content.jwplatform.com/manifests/{{ item.key }}.m3u8" type="application/vnd.apple.mpegurl" duration="{{ item.duration }}">
       <media:category>{{ item.tags }}</media:category>
       <media:title>{{ item.title }}</media:title>
