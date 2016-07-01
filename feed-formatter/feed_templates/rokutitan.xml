@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/">
+<channel>
+{% for item in items -%}
+  {% if loop.first -%}
+  <title>{{ item.playlistTitle }}</title>
+  <link>https://content.jwplatform.com/previews/{{ item.playlistFeedID }}</link>
+  <description>{{ item.playlistDescription }}</description>
+  {% else -%}
+  <item>
+    <title>{{ item.title }}</title>
+    <link>{{ item.link }}</link>
+    <description>{{ item.description }}</description>
+    <pubDate>{{ item.date_rss }}</pubDate>
+    <guid>{{ item.key }}</guid>
+    <media:content url="https://content.jwplatform.com/manifests/{{ item.key }}.m3u8" type="application/vnd.apple.mpegurl" duration="{{ item.duration }}">
+      <media:category>{{ item.tags }}</media:category>
+      <media:title>{{ item.title }}</media:title>
+      <media:description>{{ item.description }}</media:description>
+      <media:thumbnail url="https://content.jwplatform.com/thumbs/{{ item.key }}-1920.jpg"/>
+      <media:keywords>{{ item.tags }}</media:keywords>
+    </media:content>
+  </item>
+  {% endif -%}
+  {% endfor -%}
+  </channel>
+</rss>

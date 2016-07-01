@@ -19,6 +19,11 @@ def get(key=''):
 def parse(json={}):
 	clean = {}
 	items = []
+	items.append({
+		'playlistTitle' 		: json.get('title'),
+		'playlistDescription' 	: json.get('description'),
+		'playlistFeedID'		: json.get('feedid')
+	})
 	for i in json.get('playlist', []):
 		best = {'width': 0, 'url': '', 'duration': 0}
 		pubdate = datetime.datetime.utcfromtimestamp(i.get('pubdate'))
@@ -27,13 +32,13 @@ def parse(json={}):
 				best['url']      = s.get('file')
 				best['width']    = s.get('width')
 				best['duration'] = s.get('duration')
-		items.append({ 
+		items.append({
 			'key'  : i.get('mediaid'),
 			'title': i.get('title'),
 			'description': i.get('description'),
 			'date' : i.get('pubdate'),
 			'date_utc': pubdate.strftime('%Y-%m-%d %H:%M:%S'),
-			'date_rss': pubdate.strftime("%a, %d %b %Y %H:%M:%S %z"),
+			'date_rss': pubdate.strftime("%a, %d %b %Y %H:%M:%S GMT"),
 			'mediaurl': best.get('url'),
 			'duration': best.get('duration'),
 			'image': i.get('image'),
