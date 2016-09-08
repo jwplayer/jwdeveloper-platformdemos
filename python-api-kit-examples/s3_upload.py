@@ -1,59 +1,47 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import logging
-import urllib
 import os
-import os.path
-import pycurl
+import logging
 
-from botr.api import API
+import jwplatform
+import requests
 
 logging.basicConfig(level=logging.INFO)
 
 def upload_video(api_key, api_secret, video_file):
 
-    # setup api
-    api = API(api_key, api_secret)
+    # Setup API client
+    jwplatform_client = jwplatform.Client(api_key, api_secret)
 
-    # build parameters for the /videos/create API call
-    params = {
-        'title': os.path.basename(video_file),
-        'upload_method': 's3',
-    }
-
+    # Make /videos/create API call
     logging.info("creating video")
-    response = api.call('/videos/create', params=params)
+    try:
+        response = jwplatform_client.videos.create(
+            title=os.path.basename(video_file),
+            upload_method='s3')
+    except jwplatform.errors.JWPlatformError as e:
+        logging.error("Encountered an error creating a video")
+        sys.exit(e.message)
     logging.info(response)
 
-    # construct base url for upload
+    # Construct base url for upload
     upload_url = '{}://{}{}'.format(
         response['link']['protocol'],
         response['link']['address'],
         response['link']['path']
     )
 
-    # add query parameters to the upload url
-    query_parameters = []
-    for key, value in response['link']['query'].iteritems():
-        query_parameters.append('{}={}'.format(
-            urllib.quote_plus(key),
-            urllib.quote_plus(unicode(value)),
-        ))
-    upload_url += '?' + '&'.join(query_parameters)
+    # Query parameters for the upload
+    query_parameters = response['link']['query']
 
 
-    # HTTP PUT uplad using curl
-    filesize = os.path.getsize(video_file)
+    # HTTP PUT upload using requests
     with open(video_file, 'rb') as f:
-        c = pycurl.Curl()
-        c.setopt(pycurl.URL, upload_url)
-        c.setopt(pycurl.UPLOAD, 1)
-        c.setopt(pycurl.READFUNCTION, f.read)
-        c.setopt(pycurl.INFILESIZE, filesize)
-        logging.info('uploading file {} to url {}'.format(video_file, upload_url))
-        c.perform()
-        c.close()
+        r = requests.put(upload_url, params=query_parameters, data=f)
+        logging.info('uploading file {} to url {}'.format(video_file, r.url))
+        logging.info('upload response: {}'.format(r.text))
+        logging.info(r)
 
 if __name__ == '__main__':
     import argparse
