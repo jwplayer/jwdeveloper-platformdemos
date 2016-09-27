@@ -9,10 +9,12 @@ This directory demonstrates how you can deploy a simple feed formatter service t
 2. Activate it:
    `$ source venv/bin/activate`
 3. Install dependencies:
+   `
    # please make sure you have developer tools installed
    # ubuntu: sudo apt-get install build-essential
    # rhel/centos: sudo yum group install "Development Tools" 
-   `$ pip install -r requirements.txt`   
+   $ pip install -r requirements.txt
+   `   
 4. Run the app:
    `$ python app.py`
 5. Visit the app in your browser
