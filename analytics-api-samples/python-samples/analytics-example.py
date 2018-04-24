@@ -14,8 +14,8 @@ import sys
 from datetime import datetime
 
 # Account configurations
-_YOUR_SITE_ID = '6QNxZHni' # Your JW-Player site token
-_YOUR_AUTHORIZATION = 'kcG6tj0YAGWBX78RYjDou2InU25FeWNrTnplamhIVTJnd09IWlBjbkYwTVUxb2NXdDUn' # Your HTTP header authorization
+_YOUR_SITE_ID = '' # Your JW-Player site token
+_YOUR_AUTHORIZATION = '' # Your HTTP header authorization
 
 # Report configurations
 _REPORT_NAME = 'your-favorite-jw-report' # Report name, will be used as prefix for the CSV file
