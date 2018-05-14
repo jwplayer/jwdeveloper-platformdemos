@@ -11,6 +11,7 @@ class AnalyticsApiWrapper
     private $_queryBody;
     private $_apiUrl;
     private $_response;
+    private $_queryType;
 
     /**
      * Constructor: 
@@ -18,16 +19,17 @@ class AnalyticsApiWrapper
      * @param type $key     -- JW Property Key
      * @param type $secret  -- JW Analytics API Secret 
      */
-    public function __construct($key, $secret) {
+    public function __construct($key, $secret, $type = 'json') {
         $this->_jwKey = $key;
         $this->_jwSecret = $secret;
 
         /* Setup the URL and Headers for the CURL call
          */
-        $this->_apiUrl = API_ROUTE . $this->_jwKey . '/analytics/queries/';
+        $this->_apiUrl = API_ROUTE . $this->_jwKey . '/analytics/queries?format=' . $type;
         $this->_requestHeaders = [];
         $this->_requestHeaders[] = 'Authorization: ' . $this->_jwSecret;
         $this->_requestHeaders[] = 'Content-Type: application/json';
+        $this->_queryType = $type;
     } 
     
     /**
@@ -82,34 +84,40 @@ class AnalyticsApiWrapper
      * @return none
      */
     private function processBody($body) {
-        /* Turn the response body into a PHP Array
-        */
-        $json = json_decode($body, true);
-        if ($json === NULL || $json === FALSE) {
-            $this->_response['errormsg'] = 'Cannot decode body of response';
-            return;
-        }
+        if ($this->_queryType == 'json') {
+            /* Turn the response body into a PHP Array
+             */
+            $json = json_decode($body, true);
+            if ($json === NULL || $json === FALSE) {
+                $this->_response['errormsg'] = 'Cannot decode body of response';
+                print_r($body);
+                return;
+            }
 
-        /* The response should have a metadata and column headers 
-         * field if it was valid
-         */
-        if (!array_key_exists('metadata', $json)) {
-            $this->_response['errormsg'] = "Bad Response: no 'metadata' field.";
-            return;
-        } else if (!array_key_exists('column_headers', $json['metadata'])) {
-            $this->_response['errormsg'] = "No Column Headers specified";
-            return;
-        }
-    
-        /* Get the DIMENSION, METRIC, and DATA Specifiers
-        */
-        $this->_response['dimensions'] = $json['metadata']['column_headers']['dimensions'];
-        $this->_response['metrics'] = $json['metadata']['column_headers']['metrics'];    
-        $this->_response['data'] = $json['data']['rows'];
-        if (array_key_exists('includes', $json)) {
-            $this->_response['metadata'] = $json['includes'];            
+            /* The response should have a metadata and column headers 
+             * field if it was valid
+             */
+            if (!array_key_exists('metadata', $json)) {
+                $this->_response['errormsg'] = "Bad Response: no 'metadata' field.";
+                return;
+            } else if (!array_key_exists('column_headers', $json['metadata'])) {
+                $this->_response['errormsg'] = "No Column Headers specified";
+                return;
+            }
+
+            /* Get the DIMENSION, METRIC, and DATA Specifiers
+             */
+            $this->_response['dimensions'] = $json['metadata']['column_headers']['dimensions'];
+            $this->_response['metrics'] = $json['metadata']['column_headers']['metrics'];
+            $this->_response['data'] = $json['data']['rows'];
+            if (array_key_exists('includes', $json)) {
+                $this->_response['metadata'] = $json['includes'];
+            } else {
+                $this->_response['metadata'] = null;
+            }
         } else {
-            $this->_response['metadata'] = null;
+            printf("Format of body is not JSON\n");
+            $this->_response['data'] = $body;
         }
     }
     

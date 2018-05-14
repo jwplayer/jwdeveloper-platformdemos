@@ -1,21 +1,20 @@
 # -*- coding: utf-8 -*-
 
 #
-# Python 3.6
+# Python 3.6, argparse
 # Submits query to JW-Player data-retrieval URL
 # Dumps data into CSV file
 #
+# Usage: python <PYTHON_MODULE> --site-id <SITE_ID> --authorization <AUTHORIZATION>
+#
 
+import argparse
 import json
 import requests
 import shutil
 import sys
 
 from datetime import datetime
-
-# Account configurations
-_YOUR_SITE_ID = '' # Your JW-Player site token
-_YOUR_AUTHORIZATION = '' # Your HTTP header authorization
 
 # Report configurations
 _REPORT_NAME = 'your-favorite-jw-report' # Report name, will be used as prefix for the CSV file
@@ -54,18 +53,28 @@ _REPORT_QUERY = { # Query to be executed
 	'include_metadata': 1 # 1 to include meta-data, 0 not to
 }
 
+parser = argparse.ArgumentParser(usage='usage: --site-id <SITE_ID> --authorization <AUTHORIZATION>')
+parser.add_argument('--site-id', dest='site_id',
+					type=str, required=True,
+					help='Your site ID')
+parser.add_argument('--authorization', dest='authorization',
+					type=str, required=True,
+					help='Your HTTP authorization ID')
+args = parser.parse_args()
+
 print('Submits query')
-response = requests.post('https://api.jwplayer.com/v2/sites/'+_YOUR_SITE_ID+'/analytics/queries/?format=csv', # JW-Player data-retrieval URL
+response = requests.post('https://api.jwplayer.com/v2/sites/' + args.site_id + '/analytics/queries/?format=csv', # JW-Player data-retrieval URL
 						 stream=True,
-						 headers={ 'Authorization': _YOUR_AUTHORIZATION }, # Indicates your clearance
+						 headers={ 'Authorization': args.authorization }, # Indicates your clearance
 						 data=json.dumps(_REPORT_QUERY)) # Passes the query specified above
 print('Got response')
 if response.status_code != 200:
 	error = json.loads(response.text)
 	print("Wasn't able to download report due to: "+str(error))
 	sys.exit(1)
-file_name = _REPORT_NAME+'-'+datetime.today().strftime('%Y%m%d')+'.csv'
+file_name = _REPORT_NAME + '-' + datetime.today().strftime('%Y%m%d') + '.csv'
 print('Creates file: '+file_name)
 with open(file_name, 'wb') as out_file:
     shutil.copyfileobj(response.raw, out_file)
 print('Wrote response to file: '+file_name)
+
