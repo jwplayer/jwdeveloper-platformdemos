@@ -2,7 +2,9 @@
 
 ## Overview
 - analyticsApiWrapper.php - Class Wrapper for analytics API Calls
-- example.php - Uses analyticsApiWrapper to make API calls and write report to CSV 
+- analytics-example.php - Uses analyticsApiWrapper to make API calls and write report to CSV 
+- enriched-videos.php - Makes multiple analytics queries and management API queries to
+create an enriched report
 
 ## Requirements
 - PHP 5.5 CLI
