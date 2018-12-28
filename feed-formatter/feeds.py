@@ -4,11 +4,25 @@ import requests
 import datetime
 import os
 
-baseUrl = 'http://content.jwplatform.com/feeds/{}.json'
+# baseUrl = 'http://content.jwplatform.com/feeds/{}.json'
+# Updated to Delivery API V2
+baseUrl = 'http://cdn.jwplayer.com/v2/playlists/{}?page_limit={}&page_offset={}'
 template_dir = "{}/feed_templates".format(os.path.dirname(os.path.realpath(__file__)))
 loader = jinja2.FileSystemLoader(template_dir)
 environment = jinja2.Environment(loader=loader)
 
+clean = {}
+clean['items'] = []
+html_escape_table = {
+   "&": "&amp;",
+   '"': "&quot;",
+   "'": "&apos;",
+   ">": "&gt;",
+   "<": "&lt;",
+}
+def html_escape(text):
+  """Produce entities within text."""
+  return "".join(html_escape_table.get(c,c) for c in text)
 
 def catch_key_error(key):
     """
@@ -26,20 +40,28 @@ def catch_key_error(key):
 environment.filters['catch_key_error'] = catch_key_error
 
 
-def get(key=''):
+def get(key='', pageoffset=1, pagelimit=1):
     """
 
     :param key: <string> Key of playlist/feed to retrieve
     :return: <dict> JSON response
     """
-    r = requests.get(baseUrl.format(key))
+    print 'retrieving JSON'
+    url = baseUrl.format(key,pagelimit,pageoffset)
+    print url
+    r = requests.get(url)
     if r.status_code == 200:
+        print 'got JSON'
         return r.json()
     else:
-        raise Exception('Unable to fetch resource')
+        # If first call to playlist then throw an exception
+        if pageoffset == 1:
+            raise Exception('Unable to fetch resource')
+        else:
+            return None
 
 
-def parse(json={}):
+def parse(json=None):
     """
     The purpose of this function is to parse a JSON response from jwplatform.com/feeds and tailor it to your needs. This
     function illustrates how a publisher may tailor fit the response from /feeds to their needs. Adding and subtracting
@@ -48,10 +70,17 @@ def parse(json={}):
     :param json: <dict> JSON response from jwplatform.com/feeds
     :return: <dict> With appropriate JSON
     """
-    clean = {}
+
+    global clean
+
+    json = json if json is not None else {}
+
     items = []
 
+    print 'parseJSON: Enter'
     for video_object in json.get('playlist', []):
+        #print u'Title: {}'.format(video_object.get('title'))
+        #print u'Description: {}'.format(video_object.get('description'))
         best = {'width': 0, 'url': ''}
         pubdate = datetime.datetime.utcfromtimestamp(video_object.get('pubdate'))
 
@@ -62,11 +91,17 @@ def parse(json={}):
         best['url'] = highest_quality_video.get('file')
         best['width'] = highest_quality_video.get('width')
 
+
         # An example in which we extract all item level information including custom paramters & required parameters.
-        # The deprecated custom block is ignored however.
+        # Some fields need to be escaped for HTML output
+        item = {}
+        for key, value in video_object.items():
+            if (key == 'title') or (key == 'description') or (key == 'link'):
+                item[key] = html_escape(value)
+            else:
+                item[key] = value
+
         # Additionally, nifty date tags are added at the item level for convenience.
-        item_level_ignored_fields = ['custom']
-        item = {key: value for key, value in video_object.items() if key not in item_level_ignored_fields}
         item['date_utc'] = pubdate.strftime('%Y-%m-%d %H:%M:%S')
         item['date_rss'] = pubdate.strftime("%a, %d %b %Y %H:%M:%S %z")
 
@@ -74,15 +109,25 @@ def parse(json={}):
         # which may be rendered in a custom Jinja2 template (found within feed_templates/)
         item['highest_quality_url'] = best.get('url')
 
+        # mvernick ; add in HLS
+        hls_sources = filter(lambda x: x.get('type') == 'application/vnd.apple.mpegurl',
+                             video_object.get('sources', []))
+        if len(hls_sources) == 1:
+            item['hls'] = hls_sources[0].get('file')
+        else:
+            item['hls'] = ""
+
         items.append(item)
 
-    clean['items'] = items
+    clean['items'] = clean['items'] + items
+    print 'ParseJson: Items Found: ', len(items)
 
     # Extract all feed level metadata fields.
     # Note this includes feed-level custom parameters
     feed_level_ignored_fields = ['playlist']
     clean['playlist_metadata'] = {key: value for key, value in json.items() if key not in feed_level_ignored_fields}
 
+    print 'parseJSON: Exit'
     return clean
 
 
@@ -109,11 +154,28 @@ def process(key='', template_name='standard'):
     :param template_name: <string> Represents a particular template format found within feed_templates/
     :return: <string> Rendered XML string with appropriate Key:Values injected into it.
     """
-    try:
-        data = get(key)
-        parsed = parse(data)
-    except:
-        raise Exception('Unable to fetch and parse feed')
-    else:
-        rendered = toXML(parsed, "{}.xml".format(template_name))
-        return rendered
+    global clean
+
+    pageoffset = 1
+    pagelimit = 10
+    clean = {}
+    clean['items'] = []
+
+    print "process: Enter, Key: {} offset: {}".format(key, pageoffset)
+    while pageoffset > 0:
+        data = get(key, pageoffset, pagelimit)
+        if data is not None:
+            parsed = parse(data)
+            #print parsed['playlist_metadata']['links']
+            if parsed['playlist_metadata']['links'].has_key("next"):
+                pageoffset += pagelimit
+            else:
+                print 'Finished looping'
+                pageoffset = 0
+        else:
+            pageoffset = 0
+
+    print 'Rendering XML: Number parsed Items: ', len(parsed['items'])
+    rendered = toXML(parsed, "{}.xml".format(template_name))
+
+    return rendered

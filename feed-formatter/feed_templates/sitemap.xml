@@ -1,0 +1,35 @@
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+    xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+
+    {# Group the videos by items.link
+    #}
+    {% for group in items|groupby('link') %}
+        <url>
+            <loc>{{ group.grouper }}</loc>
+            {% for item in group.list %}
+                <video:video>
+                    {# Metadata for each video
+                    #}
+                    <video:mediaid>{{item.mediaid}}</video:mediaid>
+                    <video:title>{{ item.title }}</video:title>
+                    <video:description>{{ item.description }}</video:description>
+                    <video:content_loc>{{ item.hls }}</video:content_loc>
+                    <video:duration>{{ item.duration }}</video:duration>
+                    <video:publication_date>{{ item.date_rss }}</video:publication_date>
+                    <video:thumbnail_loc>{{ item.image }}</video:thumbnail_loc>
+
+                    {# One element per tag
+                    #}
+                    {% if item.tags %}
+                        {% set tags = item.tags %}
+                        {% set taglist = tags.split(',') %}
+                        {% for tag in taglist %}
+                            <video:tag>{{ tag }}</video:tag>
+                        {% endfor %}
+                    {% endif %}
+
+                </video:video>
+            {% endfor %}
+        </url>
+        {% endfor %}
+</urlset>

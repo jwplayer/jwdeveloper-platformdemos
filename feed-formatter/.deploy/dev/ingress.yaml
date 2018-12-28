@@ -1,0 +1,10 @@
+name: v1
+description: JSON to feed formatter
+
+selector: api
+expose: internal
+
+ports:
+    - port: 80
+      target: 5000
+      protocol: tcp

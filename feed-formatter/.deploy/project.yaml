@@ -1,0 +1,6 @@
+name: feedformatter
+description: translate JSON Playlists to output feed
+team: team_l2_support
+members:
+    - group: team_l2_support
+      role: admin 

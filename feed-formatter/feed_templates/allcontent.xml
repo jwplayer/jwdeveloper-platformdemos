@@ -1,0 +1,24 @@
+<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/" 
+    xmlns:customns="http://jwplayer.com/mrss/">
+
+
+    <channel>
+        <title>{{playlist_metadata.title}}</title>
+        <description>{{playlist_metadata.description}}</description>
+        <language>en-us</language>
+        <custom>Hallelujah</custom>
+
+        {% for item in items %}
+        <item>
+            <media:keywords>{{ item.tags }}</media:keywords>
+            <media:title>{{ item.title }}</media:title>
+            <guid>{{ item.key }}</guid>
+            <media:content content_id="{{ item.mediaid }}" url="{{ item.hls }}" 
+                            duration="{{ item.duration }}" type="video"/>
+            <media:thumbnail url="{{ item.image }}" width="1"/>
+            <hls_url>{{item.hls}}</hls_url>
+        </item>
+        {% endfor %}
+
+    </channel>
+</rss>

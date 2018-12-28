@@ -1,0 +1,31 @@
+<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/" 
+    xmlns:customns="http://jwplayer.com/mrss/">
+
+
+    <channel>
+        <title>{{playlist_metadata.title}}</title>
+        <description>{{playlist_metadata.description}}</description>
+        <language>en-us</language>
+
+        {% for item in items %}
+	    {% if not item.link.startswith('http://cdn.jwplayer.com/previews') %}
+        <item>
+            <media:keywords>{{ item.tags }}</media:keywords>
+            <media:category>{{ item.category }}</media:category>
+            <media:title>{{ item.title }}</media:title>
+            <description>{{ item.description }}</description>
+            <webLink> {{ item.link }}</webLink>
+            <guid>{{ item.key }}</guid>
+            <PubDate>{{ item.date_rss }}</PubDate>
+	    <hls_url>{{ item.hls }}</hls_url>
+	    <customns:legacyId>{{item.brightcoveId}}</customns:legacyId>
+
+            <media:content content_id="{{ item.mediaid }}" url="{{ item.hls }}" 
+                            duration="{{ item.duration }}" type="video"/>
+
+        </item>
+            {% endif %}
+        {% endfor %}
+
+    </channel>
+</rss>

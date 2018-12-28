@@ -1,0 +1,14 @@
+name: api
+description: JSON to Templated Feed
+
+replicas: 1
+containers:
+- name: feedformatter
+  image: jwplayer/feedformatter:1.1
+
+  ports:
+  - target: 5000
+    protocol: TCP
+
+  healthcheck:
+    tcp: 5000
